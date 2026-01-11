@@ -1,0 +1,79 @@
+flowchart LR
+
+subgraph SHOP["SHOP BRANCH 240VAC 1PH"]
+direction LR
+    SRC1["240VAC 1Φ SUPPLY"]
+    Q1["Q1 BREAKER 2P"]
+    K1["K1 LINE CONTACTOR 2P"]
+    PE1["PE BAR"]
+    VFD1["SHOP VFD 230V CLASS<br>INPUT L1 L2<br>OUTPUT U V W<br>PE"]
+    MOT1["CUTTERHEAD MOTOR SHOP<br>2.2KW<br>WIRED FOR 230V"]
+end
+
+subgraph COMP["COMP BRANCH 480VAC 3PH"]
+direction LR
+    SRC2["480VAC 3Φ SUPPLY"]
+    Q2["Q2 BREAKER 3P"]
+    K2["K2 LINE CONTACTOR 3P"]
+    PE2["PE BAR"]
+    VFD2["COMP VFD 480V CLASS<br>INPUT L1 L2 L3<br>OUTPUT U V W<br>PE"]
+    MOT2["CUTTERHEAD MOTOR COMP<br>2.2KW<br>WIRED FOR 460V"]
+end
+
+SRC1 -- L1 --> Q1
+SRC1 -- L2 --> Q1
+Q1 -- L1 --> K1
+Q1 -- L2 --> K1
+K1 -- L1 --> VFD1
+K1 -- L2 --> VFD1
+SRC1 -- PE --> PE1
+PE1 -- PE --> VFD1
+PE1 -- PE --> MOT1
+VFD1 -- U --> MOT1
+VFD1 -- V --> MOT1
+VFD1 -- W --> MOT1
+
+SRC2 -- L1 --> Q2
+SRC2 -- L2 --> Q2
+SRC2 -- L3 --> Q2
+Q2 -- L1 --> K2
+Q2 -- L2 --> K2
+Q2 -- L3 --> K2
+K2 -- L1 --> VFD2
+K2 -- L2 --> VFD2
+K2 -- L3 --> VFD2
+SRC2 -- PE --> PE2
+PE2 -- PE --> VFD2
+PE2 -- PE --> MOT2
+VFD2 -- U --> MOT2
+VFD2 -- V --> MOT2
+VFD2 -- W --> MOT2
+
+linkStyle 0 stroke:red,stroke-width:2px
+linkStyle 1 stroke:black,stroke-width:2px
+linkStyle 2 stroke:red,stroke-width:2px
+linkStyle 3 stroke:black,stroke-width:2px
+linkStyle 4 stroke:red,stroke-width:2px
+linkStyle 5 stroke:black,stroke-width:2px
+linkStyle 6 stroke:green,stroke-width:2px
+linkStyle 7 stroke:green,stroke-width:2px
+linkStyle 8 stroke:green,stroke-width:2px
+linkStyle 9 stroke:orange,stroke-width:2px
+linkStyle 10 stroke:blue,stroke-width:2px
+linkStyle 11 stroke:purple,stroke-width:2px
+
+linkStyle 12 stroke:brown,stroke-width:2px
+linkStyle 13 stroke:black,stroke-width:2px
+linkStyle 14 stroke:gray,stroke-width:2px
+linkStyle 15 stroke:brown,stroke-width:2px
+linkStyle 16 stroke:black,stroke-width:2px
+linkStyle 17 stroke:gray,stroke-width:2px
+linkStyle 18 stroke:brown,stroke-width:2px
+linkStyle 19 stroke:black,stroke-width:2px
+linkStyle 20 stroke:gray,stroke-width:2px
+linkStyle 21 stroke:green,stroke-width:2px
+linkStyle 22 stroke:green,stroke-width:2px
+linkStyle 23 stroke:green,stroke-width:2px
+linkStyle 24 stroke:orange,stroke-width:2px
+linkStyle 25 stroke:blue,stroke-width:2px
+linkStyle 26 stroke:purple,stroke-width:2px
