@@ -1,0 +1,44 @@
+flowchart TB
+ subgraph CONTROL["24V CONTROL BUS"]
+        QUINT["QUINT PSU
+    24V CONTROL Bus"]
+  end
+ subgraph POWER["24V POWER BUS"]
+        RSP1["RSP-750-24 PSU #1
+    24V POWER Bus #1"]
+        RSP2["RSP-750-24 PSU #2
+    24V POWER Bus #2"]
+  end
+    GEN["Generator
+    480V 3φ + 120/240V split-phase"] --> MB480["480V Main Breaker
+    (C60X3C10, 3-pole, 10A)"] & MB120["120/240V Main Breaker
+    (CH2100, 2-pole, 100A)"]
+    MB480 --> VFD["Cutterhead VFD
+    (480V 3φ)"]
+    VFD --> CH_MOTOR["Cutterhead Motor
+    480V 3φ"]
+    MB120 --> DIST["120/240V Distribution Block"]
+    DIST --> B_QUINT["Branch Breaker:
+    QUINT PSU (15A)"] & B_RSP1["Branch Breaker:
+    RSP-750 #1 (30A)"] & B_RSP2["Branch Breaker:
+    RSP-750 #2 (30A)"] & B_KBMG["Branch Breaker:
+    KBMG Drive (15–20A)"]
+    B_QUINT --> QUINT
+    B_RSP1 --> RSP1
+    B_RSP2 --> RSP2
+    B_KBMG --> KON_JACK["AF09 Contactor
+    (Screw Jack)"]
+    KON_JACK --> KBMG["KBMG-212D
+    0–90V DC Drive"]
+    KBMG --> JACK_MOTOR["Leeson 108710
+    Screw Jack Motor"]
+    POWER --> KON_FANS["G7L Contactor
+    (Fans / 24V Power)"] & KON_PUMP["DCNSEV30-C Contactor
+    (Diaphragm Pump)"] & RELAY_PERI["G2R Relay
+    (Peristaltic Pump)"]
+    KON_FANS --> FANS["4× AFB1224EHE Fans
+    24V"]
+    KON_PUMP --> PUMP_DIAP["Diaphragm Pump
+    12–24V"]
+    RELAY_PERI --> PUMP_PERI["Peristaltic Pump
+    12V"]
