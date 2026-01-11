@@ -1,0 +1,174 @@
+---
+config:
+  layout: dagre
+  look: neo
+---
+flowchart LR
+ subgraph AC_PANEL["AC Panel Power"]
+        GEN["Generator<br>Westinghouse WGen9500DF"]
+        CORD["Generator Power Cord<br>(Purchased Cordset)"]
+        ENTRY["Panel Cable Entry<br>(Strain Relief / Gland)"]
+        MB["Main Breaker<br>(CH2100 or equivalent)"]
+        AC_BUS["AC Distribution (DIN feed)"]
+  end
+ subgraph PSU_CTRL["PSU #3 (24V) — Controls & Sensors (ALWAYS ON)"]
+        PSU24["24VDC PSU<br>(QUINT-PS 24V/10A)"]
+        BUSP["+24V CONTROL BUS"]
+        BUS0["0V / RETURN BUS"]
+  end
+ subgraph SAFETY["Safety Chain (E-stop drops Motion/Aux AC)"]
+        ESTP["E-STOP Pushbutton<br>(XALK...) NC contacts"]
+        SR["Safety Relay<br>(SCR31-280002)"]
+        ENBUS["+24V MOTION ENABLE BUS<br>(drops on E-stop)"]
+        K1COIL["K1 Contactor Coil<br>(24VDC coil)"]
+        SRSTAT["Safety Status Contact → PLC DI (optional)"]
+  end
+ subgraph PSU_LA1["PSU #1 (24V) — Linear Actuator #1 (E-STOPPED)"]
+        RSP1["RSP 750-24 #1<br>24VDC, 31.5A"]
+        LAC1["LA Controller #1"]
+        LA1["Linear Actuator #1"]
+  end
+ subgraph PSU_LA2["PSU #2 (24V) — Linear Actuator #2 (E-STOPPED)"]
+        RSP2["RSP 750-24 #2<br>24VDC, 31.5A"]
+        LAC2["LA Controller #2"]
+        LA2["Linear Actuator #2"]
+  end
+ subgraph PSU_12V["PSU #4 (12V) — Pumps (E-STOPPED)"]
+        RSP12["RSP 500-12<br>12VDC, 41.7A (500W)"]
+        K_PUMP["Pump Relay/Contactor<br>(switches 12V to pumps)"]
+        DP["Diaphragm Pump<br>12VDC ~17A"]
+        PP["Peristaltic Pump<br>12VDC ~1A"]
+  end
+ subgraph CONTROL_LOADS["Control Loads (stay ON during E-stop)"]
+        PLC["PLC / Controller<br>(C2-03CPU OR AXC F 2152)"]
+        CB_PLC["Branch Protection (TBD)"]
+        HMI["HMI<br>(EA9-T10CL)"]
+        CB_HMI["Branch Protection (TBD)"]
+        IO["Remote I/O<br>(AXL DI16 / DO16)"]
+        CB_IO["Branch Protection (TBD)"]
+        SW["Ethernet Switch (TBD)"]
+        CB_NET["Branch Protection (TBD)"]
+        IOLM["IO-Link Master<br>(DXMR110-8K)"]
+        CB_IOL["Branch Protection (TBD)"]
+        RLY["Interface Relays<br>(RIF modules)"]
+        CB_RLY["Branch Protection (TBD)"]
+  end
+ subgraph SENSOR_NODE["ESP32 controlled"]
+        ESP["ESP32 Microcontroller<br>(ESP32 Assembly)"]
+        ACC["Accelerometer<br>(ICM-20948)"]
+        IDC["DC Current Sensor<br>(ACS758)"]
+        IAC["AC Current Sensor<br>(ZMPT101B)"]
+  end
+ subgraph NETWORK["IO-Link controlled"]
+        PT["IO-Link Pressure TX"]
+        TT["IO-Link Temp Sensor"]
+  end
+ subgraph LEGEND["Legend"]
+        L1["+24V Power"]
+        L2["0V / Return"]
+        L3["Safety Circuit"]
+        L4["Comms / Data"]
+  end
+    GEN --> CORD
+    CORD --> ENTRY
+    ENTRY --> MB
+    MB --> AC_BUS
+    AC_BUS --> CB_CTRL_AC["AC Branch Protection<br>(Controls PSU - always on)"] & CB_MOT_AC["AC Branch Protection<br>(Motion/Aux PSUs - E-stopped)"]
+    CB_MOT_AC --> K1["K1 Power Contactor<br>(switches AC to Motion/Aux PSUs)"]
+    PSU24 --> BUSP & BUS0
+    CB_CTRL_AC --> PSU24
+    BUSP --> ESTP & CB_PLC & CB_HMI & CB_IO & CB_NET & CB_IOL & CB_RLY & ESP
+    ESTP --> SR
+    SR --> ENBUS & K1COIL & SRSTAT
+    BUS0 -.-> SR & RLY & SW & PLC & HMI & IO & IOLM & ESP
+    K1COIL -.-> K1
+    K1 --> CB_RSP1_AC["AC Branch Protection<br>(RSP 750-24 #1)"] & CB_RSP2_AC["AC Branch Protection<br>(RSP 750-24 #2)"] & CB_RSP12_AC["AC Branch Protection<br>(RSP 500-12)"]
+    RSP1 --> LAC1
+    LAC1 --> LA1
+    CB_RSP1_AC --> RSP1
+    RSP2 --> LAC2
+    LAC2 --> LA2
+    CB_RSP2_AC --> RSP2
+    RSP12 --> K_PUMP
+    K_PUMP --> DP & PP
+    CB_RSP12_AC --> RSP12
+    CB_PLC --> PLC
+    CB_HMI --> HMI
+    CB_IO --> IO
+    CB_NET --> SW
+    CB_IOL --> IOLM
+    CB_RLY --> RLY
+    ACC --> ESP
+    IDC --> ESP
+    IAC --> ESP
+    PLC --- SW
+    HMI --- SW
+    IOLM --- SW
+    ESP --- SW
+    IOLM --> PT & TT
+    ENBUS --> LAC1 & LAC2 & K_PUMP
+
+     BUSP:::plus24Bus
+     BUS0:::returnBus
+     ESTP:::plus24
+     SR:::safety
+     SR:::return0
+     ENBUS:::safety
+     ENBUS:::safetyBus
+     K1COIL:::safety
+     SRSTAT:::safety
+     LAC1:::safety
+     LAC2:::safety
+     K_PUMP:::safety
+     PLC:::return0
+     CB_PLC:::plus24
+     HMI:::return0
+     CB_HMI:::plus24
+     IO:::return0
+     CB_IO:::plus24
+     SW:::return0
+     SW:::comms
+     SW:::comms
+     SW:::comms
+     SW:::comms
+     CB_NET:::plus24
+     IOLM:::return0
+     CB_IOL:::plus24
+     RLY:::return0
+     CB_RLY:::plus24
+     ESP:::plus24
+     ESP:::return0
+     L1:::plus24Bus
+     L2:::returnBus
+     L3:::safetyBus
+     L4:::comms
+     K1:::safety
+    classDef plus24 stroke:#d62728,stroke-width:3px
+    classDef return0 stroke:#555555,stroke-width:2px
+    classDef safety stroke:#2ca02c,stroke-width:3px
+    classDef comms stroke:#000000,stroke-width:2px
+    classDef plus24Bus fill:#ffecec,stroke:#d62728,stroke-width:3px
+    classDef returnBus fill:#f2f2f2,stroke:#555555,stroke-width:3px,stroke-dasharray:4 4
+    classDef safetyBus fill:#eaffea,stroke:#2ca02c,stroke-width:3px
+    style MB fill:#E1BEE7
+    style SRSTAT fill:#FFD600
+    style PLC fill:#FFD600
+    style HMI fill:#FFD600
+    style IO fill:#FFD600
+    style IOLM fill:#FFD600
+    style RLY fill:#FFD600
+    style CB_CTRL_AC fill:#E1BEE7
+    style CB_MOT_AC fill:#E1BEE7
+    style CB_RSP1_AC fill:#E1BEE7
+    style CB_RSP2_AC fill:#E1BEE7
+    style CB_RSP12_AC fill:#E1BEE7
+    style SENSOR_NODE stroke:#2962FF
+    style NETWORK stroke:#2962FF
+    linkStyle 17 stroke:#2962FF,fill:none
+    linkStyle 29 stroke:#2962FF,fill:none
+    linkStyle 56 stroke:#2962FF,fill:none
+    linkStyle 57 stroke:#2962FF,fill:none
+    linkStyle 58 stroke:#2962FF,fill:none
+    linkStyle 59 stroke:#00C853,fill:none
+    linkStyle 60 stroke:#00C853,fill:none
+    linkStyle 61 stroke:#00C853,fill:none
