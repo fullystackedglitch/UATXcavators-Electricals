@@ -1,0 +1,313 @@
+---
+config:
+  layout: elk
+  look: neo
+---
+flowchart LR
+ subgraph SOURCE["Portable Generator Power Source"]
+        GEN["Generator<br>Westinghouse WGen9500DF"]
+        GEN240["240VAC Output<br>(to Tuff Box)"]
+        GEN120["120VAC Outlet<br>(Controls PSU only)"]
+  end
+
+ subgraph CTRL_AC["Controls AC Feed (ALWAYS ON)"]
+        CORD_CTRL["120VAC Cordset<br>(Generator outlet → TBM)"]
+        ENTRY_CTRL["TBM Cable Entry<br>(Strain Relief / Gland)"]
+        CB_CTRL_AC["AC Branch Protection<br>(Controls PSU - always on)"]
+  end
+
+ subgraph MAIN_FEED["Main Feed Disconnect (E-STOPPED + PLC Controlled)"]
+        CORD240["240VAC 14-50 Cord<br>(Generator → Main Contactor)"]
+        K_MAIN["K_MAIN Feeder Contactor<br>(2-pole: opens both hots)<br>Rated 50A class"]
+        K_MAIN_COIL["K_MAIN Coil<br>(24VDC)"]
+        FEED240_OUT["240VAC Feed Out<br>(to Tuff Box inlet)"]
+  end
+
+ subgraph TUFF_SYS["Tuff Box Distro (Downstream of K_MAIN)"]
+        TUFF["Power Distro Box<br>(Tuff Box)<br>IN: 240VAC<br>OUT: 120VAC outlets + 240VAC output"]
+        OUT_LA1["120VAC Outlet #1<br>(LA PSU #1 feed)"]
+        OUT_LA2["120VAC Outlet #2<br>(LA PSU #2 feed)"]
+        OUT_PUMP["120VAC Outlet #3<br>(Pumps PSU feed)"]
+        OUT_CUT["240VAC Output<br>(Cutterhead feed)"]
+  end
+
+ subgraph BRANCH_AC["Machine Branch AC Feeds (E-STOPPED)"]
+        CORD_LA1["120VAC Cordset<br>(Tuff Box → TBM)"]
+        ENTRY_LA1["Cable Entry (LA1)"]
+        CB_LA1_AC["Branch OCP<br>(LA1 cord + PSU)"]
+        K_LA1["K_LA1 2-Pole Contactor<br>(switches L + N)"]
+        K_LA1_COIL["K_LA1 Coil<br>(24VDC)"]
+
+        CORD_LA2["120VAC Cordset<br>(Tuff Box → TBM)"]
+        ENTRY_LA2["Cable Entry (LA2)"]
+        CB_LA2_AC["Branch OCP<br>(LA2 cord + PSU)"]
+        K_LA2["K_LA2 2-Pole Contactor<br>(switches L + N)"]
+        K_LA2_COIL["K_LA2 Coil<br>(24VDC)"]
+
+        CORD_PUMP["120VAC Cordset<br>(Tuff Box → TBM)"]
+        ENTRY_PUMP["Cable Entry (Pumps)"]
+        CB_PUMP_AC["Branch OCP<br>(Pump cord + PSU)"]
+        K_PUMPAC["K_PUMPAC 2-Pole Contactor<br>(switches L + N)"]
+        K_PUMPAC_COIL["K_PUMPAC Coil<br>(24VDC)"]
+
+        CORD_CUT["240VAC Cordset<br>(Tuff Box → TBM)"]
+        ENTRY_CUT["Cable Entry (Cutter)"]
+        CB_CUT_AC["Branch OCP<br>(Cutter feed)"]
+        K_CUT["K_CUT 2-Pole Contactor<br>(switches both hots)"]
+        K_CUT_COIL["K_CUT Coil<br>(24VDC)"]
+  end
+
+ subgraph BONDING["Bonding / PE (No N-PE bond in TBM)"]
+        PEBAR["PE Ground Bar<br>(Bonded to Enclosure)"]
+        TBMFRAME["TBM Frame / Chassis Bond"]
+  end
+
+ subgraph PSU_CTRL["Controls PSU (24V) — ALWAYS ON"]
+        PSU24["24VDC PSU<br>(QUINT-PS 24V/10A)"]
+        BUSP["+24V CONTROL BUS"]
+        BUS0["0V / RETURN BUS"]
+  end
+
+ subgraph CONTROL_LOADS["Control Loads (stay ON during E-stop)"]
+        CB_PLC["DC Branch Protection (TBD)"]
+        PLC["PLC / Controller<br>(AXC F 2152)"]
+        CB_HMI["DC Branch Protection (TBD)"]
+        HMI["HMI<br>(EA9-T10CL)"]
+        CB_IO["DC Branch Protection (TBD)"]
+        IO["Remote I/O<br>(AXL DI16 / DO16)"]
+        CB_NET["DC Branch Protection (TBD)"]
+        SW["Ethernet Switch (TBD)"]
+        CB_IOL["DC Branch Protection (TBD)"]
+        IOLM["IO-Link Master<br>(DXMR110-8K)"]
+        CB_RLY["DC Branch Protection (TBD)"]
+        RLY["Interface Relays<br>(RIF modules)"]
+  end
+
+ subgraph PLC_DO["PLC Outputs (Commands Only)"]
+        DO_MAIN["DO: MAIN Enable (cmd)"]
+        DO_LA1["DO: LA1 Enable (cmd)"]
+        DO_LA2["DO: LA2 Enable (cmd)"]
+        DO_PUMP["DO: Pumps Enable (cmd)"]
+        DO_CUT["DO: Cutter Enable (cmd)"]
+  end
+
+ subgraph SAFETY["Safety Chain (E-stop drops MAIN feeder + all load contactors + STO)"]
+        ESTP["E-STOP Pushbutton<br>NC (fail-safe)"]
+        RESET["Safety Reset PB<br>(2nd action after E-stop)"]
+        SR["Safety Relay<br>(SCR31-280002)<br>Manual reset"]
+        SAFECOIL["+24V SAFE COIL SUPPLY BUS<br>(drops on E-stop)"]
+        ENBUS["+24V MOTION ENABLE BUS<br>(drops on E-stop)"]
+        SRSTAT["Safety Status Contact → PLC DI (optional)"]
+  end
+
+ subgraph PSU_LA1["PSU #1 (24V) — Linear Actuator #1 (E-STOPPED)"]
+        RSP1["RSP 750-24 #1<br>24VDC, 31.5A"]
+        LA1_0V["LA1 0V Return"]
+        LAC1["LA Controller #1"]
+        LA1["Linear Actuator #1"]
+  end
+
+ subgraph PSU_LA2["PSU #2 (24V) — Linear Actuator #2 (E-STOPPED)"]
+        RSP2["RSP 750-24 #2<br>24VDC, 31.5A"]
+        LA2_0V["LA2 0V Return"]
+        LAC2["LA Controller #2"]
+        LA2["Linear Actuator #2"]
+  end
+
+ subgraph PSU_12V["PSU #3 (12V) — Pumps (E-STOPPED)"]
+        RSP12["RSP 500-12<br>12VDC, 41.7A (500W)"]
+        P12_0V["12V 0V Return"]
+        K_PUMPDC["Pump Relay/Contactor<br>(switches 12V to pumps)"]
+        DP["Diaphragm Pump<br>12VDC ~17A"]
+        PP["Peristaltic Pump<br>12VDC ~1A"]
+  end
+
+ subgraph CUTTER["Cutterhead (E-STOPPED via STO + feeder contactor)"]
+        VFD["Cutter Drive / VFD<br>(SEW drive w/ STO PLe)"]
+        STO["STO (Safe Torque Off)<br>Dual-channel from Safety Relay"]
+        CUTM["Cutterhead Motor<br>(RF127R77... SEW)"]
+  end
+
+ subgraph FANS["Fans (on LA PSU #1; E-STOPPED)"]
+        CB_FAN_DC["DC Branch Protection<br>(Fans total ~4A)"]
+        FANBUS["+24V FAN BUS (from LA1 PSU)"]
+        FAN1["Fan #1 24V ~1A"]
+        FAN2["Fan #2 24V ~1A"]
+        FAN3["Fan #3 24V ~1A"]
+        FAN4["Fan #4 24V ~1A"]
+  end
+
+ subgraph SENSOR_NODE["ESP32 controlled"]
+        ESP["ESP32 Microcontroller<br>(ESP32 Assembly)"]
+        ACC["Accelerometer<br>(ICM-20948)"]
+        IDC["DC Current Sensor<br>(ACS758)"]
+        IAC["AC Current Sensor<br>(ZMPT101B)"]
+  end
+
+ subgraph NETWORK["IO-Link controlled"]
+        PT["IO-Link Pressure TX"]
+        TT["IO-Link Temp Sensor"]
+  end
+
+ subgraph LEGEND["Legend"]
+        L1["+24V Power"]
+        L2["0V / Return"]
+        L3["Safety (drops on E-stop)"]
+        L4["Comms / Data"]
+        L5["PLC Command (not safety-rated)"]
+  end
+
+%% =======================
+%% CONNECTIONS
+%% =======================
+%% Source split
+GEN --> GEN240 & GEN120
+
+%% Controls AC (always-on)
+GEN120 --> CORD_CTRL --> ENTRY_CTRL --> CB_CTRL_AC --> PSU24
+
+%% Main 240V feeder with contactor (E-stopped + PLC controlled)
+GEN240 --> CORD240 --> K_MAIN --> FEED240_OUT --> TUFF
+K_MAIN_COIL -.-> K_MAIN
+
+%% Tuff box outputs
+TUFF --> OUT_LA1 & OUT_LA2 & OUT_PUMP & OUT_CUT
+
+%% Branch cords and contactors (downstream; optional but retained)
+OUT_LA1 --> CORD_LA1 --> ENTRY_LA1 --> CB_LA1_AC --> K_LA1 --> RSP1
+OUT_LA2 --> CORD_LA2 --> ENTRY_LA2 --> CB_LA2_AC --> K_LA2 --> RSP2
+OUT_PUMP --> CORD_PUMP --> ENTRY_PUMP --> CB_PUMP_AC --> K_PUMPAC --> RSP12
+OUT_CUT --> CORD_CUT --> ENTRY_CUT --> CB_CUT_AC --> K_CUT --> VFD
+
+%% PE bonding (grounds can be common)
+ENTRY_CTRL -.-> PEBAR
+ENTRY_LA1 -.-> PEBAR
+ENTRY_LA2 -.-> PEBAR
+ENTRY_PUMP -.-> PEBAR
+ENTRY_CUT -.-> PEBAR
+PEBAR -.-> TBMFRAME
+
+%% Controls DC distribution
+PSU24 --> BUSP & BUS0
+BUSP --> ESTP & CB_PLC & CB_HMI & CB_IO & CB_NET & CB_IOL & CB_RLY & ESP
+BUS0 -.-> PLC & HMI & IO & SW & IOLM & RLY & ESP & SR & STO
+
+CB_PLC --> PLC
+CB_HMI --> HMI
+CB_IO --> IO
+CB_NET --> SW
+CB_IOL --> IOLM
+CB_RLY --> RLY
+
+%% Safety chain
+ESTP --> SR
+RESET --> SR
+SR --> SAFECOIL & ENBUS & SRSTAT & STO
+BUS0 -.-> STO
+
+%% Safe coil supply powers MAIN + branch coils (PLC cannot override E-stop)
+SAFECOIL --> K_MAIN_COIL & K_LA1_COIL & K_LA2_COIL & K_PUMPAC_COIL & K_CUT_COIL
+K_LA1_COIL -.-> K_LA1
+K_LA2_COIL -.-> K_LA2
+K_PUMPAC_COIL -.-> K_PUMPAC
+K_CUT_COIL -.-> K_CUT
+
+%% PLC command outputs (non-safety-rated) request coils
+PLC --> DO_MAIN & DO_LA1 & DO_LA2 & DO_PUMP & DO_CUT
+DO_MAIN -.-> K_MAIN_COIL
+DO_LA1 -.-> K_LA1_COIL
+DO_LA2 -.-> K_LA2_COIL
+DO_PUMP -.-> K_PUMPAC_COIL
+DO_CUT -.-> K_CUT_COIL
+
+%% Motion enables (logic inhibit)
+ENBUS --> LAC1 & LAC2 & K_PUMPDC
+
+%% Machine DC loads
+RSP1 --> LAC1 & CB_FAN_DC
+LAC1 --> LA1
+RSP2 --> LAC2
+LAC2 --> LA2
+RSP12 --> K_PUMPDC --> DP & PP
+
+%% Cutter
+VFD --> CUTM
+STO -.-> VFD
+
+%% Fans (from LA PSU #1)
+CB_FAN_DC --> FANBUS --> FAN1 & FAN2 & FAN3 & FAN4
+LA1_0V -.-> FAN1 & FAN2 & FAN3 & FAN4 & LAC1
+LA2_0V -.-> LAC2
+P12_0V -.-> K_PUMPDC & DP & PP
+
+%% Comms
+PLC --- SW
+HMI --- SW
+IOLM --- SW
+ESP --- SW
+IOLM --> PT & TT
+
+%% Sensors
+ACC --> ESP
+IDC --> ESP
+IAC --> ESP
+
+%% =======================
+%% STYLES
+%% =======================
+K_MAIN:::safety
+K_MAIN_COIL:::safety
+K_LA1:::safety
+K_LA1_COIL:::safety
+K_LA2:::safety
+K_LA2_COIL:::safety
+K_PUMPAC:::safety
+K_PUMPAC_COIL:::safety
+K_CUT:::safety
+K_CUT_COIL:::safety
+
+BUSP:::plus24Bus
+BUS0:::returnBus
+SW:::comms
+
+DO_MAIN:::cmd
+DO_LA1:::cmd
+DO_LA2:::cmd
+DO_PUMP:::cmd
+DO_CUT:::cmd
+
+ESTP:::safety
+RESET:::safety
+SR:::safety
+SAFECOIL:::safetyBus
+ENBUS:::safetyBus
+STO:::safety
+
+L1:::plus24Bus
+L2:::returnBus
+L3:::safetyBus
+L4:::comms
+L5:::cmd
+
+classDef plus24 stroke:#d62728,stroke-width:3px
+classDef return0 stroke:#555555,stroke-width:2px
+classDef safety stroke:#2ca02c,stroke-width:3px
+classDef comms stroke:#000000,stroke-width:2px
+classDef cmd stroke:#1f77b4,stroke-width:2px,stroke-dasharray:4 3
+classDef plus24Bus fill:#ffecec,stroke:#d62728,stroke-width:3px
+classDef returnBus fill:#f2f2f2,stroke:#555555,stroke-width:3px,stroke-dasharray:4 4
+classDef safetyBus fill:#eaffea,stroke:#2ca02c,stroke-width:3px
+
+style CB_CTRL_AC fill:#E1BEE7
+style CB_LA1_AC fill:#E1BEE7
+style CB_LA2_AC fill:#E1BEE7
+style CB_PUMP_AC fill:#E1BEE7
+style CB_CUT_AC fill:#E1BEE7
+style PLC fill:#FFD600
+style HMI fill:#FFD600
+style IO fill:#FFD600
+style IOLM fill:#FFD600
+style RLY fill:#FFD600
+style SRSTAT fill:#FFD600
+style SENSOR_NODE stroke:#2962FF
+style NETWORK stroke:#2962FF
