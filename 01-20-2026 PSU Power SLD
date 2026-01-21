@@ -1,0 +1,150 @@
+flowchart LR
+
+%% =======================
+%% CUTTERHEAD POWER PATH
+%% =======================
+subgraph PWR240["SHOP POWER PATH 240VAC 1PH TO CUTTERHEAD MOTOR"]
+direction LR
+    SRC240["240VAC 1PH SUPPLY<br>L1 L2 PE"]
+    Q1["Q1 BREAKER 2P"]
+    K1P["K1 LINE CONTACTOR<br>POWER POLES 2P"]
+    VFD["VFD 230V CLASS<br>IN L1 L2<br>OUT U V W<br>PE"]
+    MOT["CUTTERHEAD MOTOR 2.2KW<br>WIRED 230V<br>T1 T2 T3<br>PE"]
+end
+
+subgraph PE_BOX["PE / BONDING"]
+direction TB
+    PE1["PE BAR<br>(Bond to TBM chassis)"]
+end
+
+SRC240 -- L1 --> Q1
+SRC240 -- L2 --> Q1
+Q1 -- L1 --> K1P
+Q1 -- L2 --> K1P
+K1P -- L1 --> VFD
+K1P -- L2 --> VFD
+
+SRC240 -- PE --> PE1
+PE1 -- PE --> VFD
+PE1 -- PE --> MOT
+
+VFD -- U --> MOT
+VFD -- V --> MOT
+VFD -- W --> MOT
+
+
+%% =======================
+%% 120VAC PSU DISTRIBUTION
+%% =======================
+subgraph PWR120["120VAC PSU POWER (TWO 20A CIRCUITS, TWO DUPLEXES)"]
+direction LR
+
+    subgraph CKT_A["CIRCUIT A (20A) - DUPLEX A"]
+    direction LR
+        OA1["Outlet A1<br>H N PE"]
+        OA2["Outlet A2<br>H N PE"]
+        BA1["15A BRKR A1 (HOT)"]
+        BA2["10A BRKR A2 (HOT)"]
+    end
+
+    subgraph CKT_B["CIRCUIT B (20A) - DUPLEX B"]
+    direction LR
+        OB1["Outlet B1<br>H N PE"]
+        OB2["Outlet B2<br>H N PE"]
+        BB1["15A BRKR B1 (HOT)"]
+        BB2["10A BRKR B2 (HOT)"]
+    end
+
+    K3P["K3 CONTACTOR 3P<br>(switches HOT only)<br>Pole1 Pole2 Pole3"]
+
+    PSU_LA1["LA #1 PSU<br>24VDC"]
+    PSU_LA2["LA #2 PSU<br>24VDC"]
+    PSU_PMP["PUMPS PSU<br>12VDC"]
+    PSU_CTRL["QUINT PS<br>CONTROLS PSU"]
+end
+
+%% Circuit A: LA#1 via K3 Pole1
+OA1 -- H --> BA1
+BA1 -- H --> K3P
+K3P -- Pole1 HOT --> PSU_LA1
+
+%% Circuit A: QUINT controls PSU direct
+OA2 -- H --> BA2
+BA2 -- H --> PSU_CTRL
+
+%% Circuit B: LA#2 via K3 Pole2
+OB1 -- H --> BB1
+BB1 -- H --> K3P
+K3P -- Pole2 HOT --> PSU_LA2
+
+%% Circuit B: Pumps PSU via K3 Pole3
+OB2 -- H --> BB2
+BB2 -- H --> K3P
+K3P -- Pole3 HOT --> PSU_PMP
+
+%% Neutrals (not switched)
+OA1 -- N --> PSU_LA1
+OB1 -- N --> PSU_LA2
+OB2 -- N --> PSU_PMP
+OA2 -- N --> PSU_CTRL
+
+%% Grounds to PE bar (PE_BOX)
+OA1 -- PE --> PE1
+OA2 -- PE --> PE1
+OB1 -- PE --> PE1
+OB2 -- PE --> PE1
+
+PE1 -- PE --> PSU_LA1
+PE1 -- PE --> PSU_LA2
+PE1 -- PE --> PSU_PMP
+PE1 -- PE --> PSU_CTRL
+
+
+%% =======================
+%% WIRE COLORS
+%% =======================
+
+%% 240VAC: L1 red, L2 black, PE green, VFD U/V/W orange/blue/purple
+linkStyle 0 stroke:red,stroke-width:2px
+linkStyle 1 stroke:black,stroke-width:2px
+linkStyle 2 stroke:red,stroke-width:2px
+linkStyle 3 stroke:black,stroke-width:2px
+linkStyle 4 stroke:red,stroke-width:2px
+linkStyle 5 stroke:black,stroke-width:2px
+linkStyle 6 stroke:green,stroke-width:2px
+linkStyle 7 stroke:green,stroke-width:2px
+linkStyle 8 stroke:green,stroke-width:2px
+linkStyle 9 stroke:orange,stroke-width:2px
+linkStyle 10 stroke:blue,stroke-width:2px
+linkStyle 11 stroke:purple,stroke-width:2px
+
+%% 120VAC: Hot = darkred, Neutral = gray, PE = green
+linkStyle 12 stroke:darkred,stroke-width:2px
+linkStyle 13 stroke:darkred,stroke-width:2px
+linkStyle 14 stroke:darkred,stroke-width:2px
+
+linkStyle 15 stroke:darkred,stroke-width:2px
+linkStyle 16 stroke:darkred,stroke-width:2px
+
+linkStyle 17 stroke:darkred,stroke-width:2px
+linkStyle 18 stroke:darkred,stroke-width:2px
+linkStyle 19 stroke:darkred,stroke-width:2px
+
+linkStyle 20 stroke:darkred,stroke-width:2px
+linkStyle 21 stroke:darkred,stroke-width:2px
+linkStyle 22 stroke:darkred,stroke-width:2px
+
+linkStyle 23 stroke:gray,stroke-width:2px
+linkStyle 24 stroke:gray,stroke-width:2px
+linkStyle 25 stroke:gray,stroke-width:2px
+linkStyle 26 stroke:gray,stroke-width:2px
+
+linkStyle 27 stroke:green,stroke-width:2px
+linkStyle 28 stroke:green,stroke-width:2px
+linkStyle 29 stroke:green,stroke-width:2px
+linkStyle 30 stroke:green,stroke-width:2px
+
+linkStyle 31 stroke:green,stroke-width:2px
+linkStyle 32 stroke:green,stroke-width:2px
+linkStyle 33 stroke:green,stroke-width:2px
+linkStyle 34 stroke:green,stroke-width:2px
