@@ -1,0 +1,246 @@
+%%{init: {"flowchart": {"nodeSpacing": 20, "rankSpacing": 20}}}%%
+flowchart LR
+ subgraph PWR240["SHOP POWER PATH 240VAC 1PH TO CUTTERHEAD MOTOR"]
+    direction LR
+        SRC240["240VAC 1PH SUPPLY<br>L1 L2 PE"]
+        Q1["Q1 BREAKER 2P"]
+        K1P["K1 LINE CONTACTOR<br>POWER POLES 2P"]
+        VFD["VFD 230V CLASS<br>IN L1 L2<br>OUT U V W<br>PE"]
+        MOT["CUTTERHEAD MOTOR 2.2KW<br>WIRED 230V<br>T1 T2 T3<br>PE"]
+  end
+ subgraph PE_BOX["PE / BONDING"]
+    direction TB
+        PE1["PE BAR<br>(Bond to TBM chassis)"]
+  end
+ subgraph CKT_A["DUPLEX A - 29A"]
+    direction LR
+        OA1["Outlet A1<br>H N PE"]
+        OA2["Outlet A2<br>H N PE"]
+        BA1["15A breaker A1 (HOT)"]
+        BA2["10A fuse A2 (HOT)"]
+  end
+ subgraph CKT_B["DUPLEX B - 20A"]
+    direction LR
+        OB1["Outlet B1<br>H N PE"]
+        OB2["Outlet B2<br>H N PE"]
+        BB1["10A fuse B1 (HOT)"]
+        BB2["15A breaker B2 (HOT)"]
+  end
+ subgraph SWITCHES["switches"]
+    direction LR
+        K3P["Pole 3<br>(3 pole contactor)<br>Pole2<br>Pole1"]
+        K_PMP_AC["13.5A relay"]
+  end
+ subgraph PSUS["PSUs"]
+    direction LR
+        PSU_LA1["LA #1 PSU<br>24VDC"]
+        PSU_LA2["LA #2 PSU<br>24VDC"]
+        PSU_PMP["PUMPS PSU<br>12VDC"]
+        PSU_CTRL["QUINT PS<br>CONTROLS PSU"]
+  end
+ subgraph PWR120["2x 120VAC, 20A duplexes"]
+    direction LR
+        CKT_A
+        CKT_B
+        SWITCHES
+        PSUS
+  end
+ subgraph LA1_LOADS["LA #1 PSU (24VDC) -> LOADS"]
+    direction LR
+        PD_LA1_POS["+24V POWER DISTRIBUTION"]
+        PD_LA1_NEG["0V POWER DISTRIBUTION<br>(from PSU_LA1 -V)"]
+        FUSE_FA["3A FUSE (Fan Group A)"]
+        FUSE_FB["3A FUSE (Fan Group B)"]
+        K_FAN_A["RELAY K_FAN_A<br>(switches +24 to Group A)"]
+        K_FAN_B["RELAY K_FAN_B<br>(switches +24 to Group B)"]
+        BUS_A_POS["+24 BUS A<br>(Fans 1-2)"]
+        BUS_B_POS["+24 BUS B<br>(Fans 3-4)"]
+        FAN1["TBM FAN 1<br>24VDC"]
+        FAN2["TBM FAN 2<br>24VDC"]
+        FAN3["TBM FAN 3<br>24VDC"]
+        FAN4["TBM FAN 4<br>24VDC"]
+        BRK_LA1["25A DC BREAKER<br>(Actuator Branch)"]
+        LA1["Linear Actuator #1"]
+        CONV_TBM["24V to 5V converter"]
+        FUSE_TBM["3A fuse"]
+        ESP_TBM["TBM ESP32"]
+        CONV_CP["24V to 5V converter"]
+        FUSE_CP["3A fuse"]
+        ESP_CP["Control Panel ESP32"]
+  end
+ subgraph LA2_LOADS["LA #2 PSU (24VDC) -> LOADS"]
+    direction LR
+        PD_LA2_POS["+24V POWER DISTRIBUTION"]
+        PD_LA2_NEG["0V Power distribution"]
+        BRK_LA2["25A breaker"]
+        LA2["linear actuator #2"]
+        BRK_SC["15A breaker"]
+        SPEED["Speed Controller"]
+        HALL["Hall effect Sync Controller"]
+  end
+ subgraph PMP_LOADS["PUMPS PSU (12VDC) -> LOADS"]
+    direction LR
+        PD_PMP_POS["+12V POWER DISTRIBUTION"]
+        PD_PMP_NEG["0V POWER DISTRIBUTION"]
+        FUSE_PERI["3A fuse"]
+        K_PERI["13.5A relay"]
+        PERI["12VDC 1A peristaltic pump"]
+        BRK_DIA["25A breaker"]
+        K_DIA["50A contactor"]
+        DIA["Diaphragm pump 12VDC 17A"]
+  end
+    SRC240 -- L1 --> Q1
+    SRC240 -- L2 --> Q1
+    Q1 -- L1 --> K1P
+    Q1 -- L2 --> K1P
+    K1P -- L1 --> VFD
+    K1P -- L2 --> VFD
+    SRC240 -- PE --> PE1
+    PE1 -- PE --> VFD & MOT & PSU_LA1 & PSU_LA2 & PSU_PMP & PSU_CTRL
+    VFD -- U --> MOT
+    VFD -- V --> MOT
+    VFD -- W --> MOT
+    OA1 -- H --> BA1
+    BA1 -- H --> K3P
+    K3P -- Pole1 HOT --> PSU_LA1
+    OA2 -- H --> BA2
+    BA2 -- H --> PSU_CTRL
+    OB1 -- H --> BB1
+    BB1 -- H --> K3P
+    K3P -- Pole2 HOT --> PSU_LA2
+    OB2 -- H --> BB2
+    BB2 -- H --> K3P
+    K3P -- Pole3 HOT --> K_PMP_AC
+    K_PMP_AC -- Pole3 HOT --> PSU_PMP
+    OA1 -- N --> PSU_LA1
+    OB1 -- N --> PSU_LA2
+    OB2 -- N --> PSU_PMP
+    OA2 -- N --> PSU_CTRL
+    OA1 -- PE --> PE1
+    OA2 -- PE --> PE1
+    OB1 -- PE --> PE1
+    OB2 -- PE --> PE1
+    PSU_LA1 -- +24V --> PD_LA1_POS
+    PSU_LA1 -- 0V --> PD_LA1_NEG
+    PD_LA1_POS -- +24V --> FUSE_FA & FUSE_FB & BRK_LA1 & CONV_TBM & CONV_CP
+    FUSE_FA -- +24V --> K_FAN_A
+    K_FAN_A -- +24V_SW --> BUS_A_POS
+    BUS_A_POS -- + --> FAN1 & FAN2
+    FAN1 -- 0V --> PD_LA1_NEG
+    FAN2 -- 0V --> PD_LA1_NEG
+    FUSE_FB -- +24V --> K_FAN_B
+    K_FAN_B -- +24V_SW --> BUS_B_POS
+    BUS_B_POS -- + --> FAN3 & FAN4
+    FAN3 -- 0V --> PD_LA1_NEG
+    FAN4 -- 0V --> PD_LA1_NEG
+    BRK_LA1 -- +24V --> LA1
+    LA1 -- 0V --> PD_LA1_NEG
+    CONV_TBM -- +5V --> FUSE_TBM
+    FUSE_TBM -- +5V --> ESP_TBM
+    CONV_CP -- +5V --> FUSE_CP
+    FUSE_CP -- +5V --> ESP_CP
+    PSU_LA2 -- +24V --> PD_LA2_POS
+    PSU_LA2 -- 0V --> PD_LA2_NEG
+    PD_LA2_POS -- +24V --> BRK_LA2 & BRK_SC
+    BRK_LA2 -- +24V --> LA2
+    LA2 -- 0V --> PD_LA2_NEG
+    BRK_SC -- +24V --> SPEED
+    SPEED -- +24V --> HALL
+    HALL -- 0V --> PD_LA2_NEG
+    PSU_PMP -- +12V --> PD_PMP_POS
+    PSU_PMP -- 0V --> PD_PMP_NEG
+    PD_PMP_POS -- +12V --> FUSE_PERI & BRK_DIA
+    FUSE_PERI -- +12V --> K_PERI
+    K_PERI -- +12V_SW --> PERI
+    PERI -- 0V --> PD_PMP_NEG
+    BRK_DIA -- +12V --> K_DIA
+    K_DIA -- +12V_SW --> DIA
+    DIA -- 0V --> PD_PMP_NEG
+
+    linkStyle 0 stroke:red,stroke-width:2px,fill:none
+    linkStyle 1 stroke:black,stroke-width:2px,fill:none
+    linkStyle 2 stroke:red,stroke-width:2px,fill:none
+    linkStyle 3 stroke:black,stroke-width:2px,fill:none
+    linkStyle 4 stroke:red,stroke-width:2px,fill:none
+    linkStyle 5 stroke:black,stroke-width:2px,fill:none
+    linkStyle 6 stroke:green,stroke-width:2px,fill:none
+    linkStyle 7 stroke:green,stroke-width:2px,fill:none
+    linkStyle 8 stroke:green,stroke-width:2px,fill:none
+    linkStyle 9 stroke:green,stroke-width:2px,fill:none
+    linkStyle 10 stroke:green,stroke-width:2px,fill:none
+    linkStyle 11 stroke:green,stroke-width:2px,fill:none
+    linkStyle 12 stroke:green,stroke-width:2px,fill:none
+    linkStyle 13 stroke:orange,stroke-width:2px,fill:none
+    linkStyle 14 stroke:blue,stroke-width:2px,fill:none
+    linkStyle 15 stroke:purple,stroke-width:2px,fill:none
+    linkStyle 16 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 17 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 18 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 19 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 20 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 21 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 22 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 23 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 24 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 25 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 26 stroke:darkred,stroke-width:2px,fill:none
+    linkStyle 27 stroke:gray,stroke-width:2px,fill:none
+    linkStyle 28 stroke:gray,stroke-width:2px,fill:none
+    linkStyle 29 stroke:gray,stroke-width:2px,fill:none
+    linkStyle 30 stroke:gray,stroke-width:2px,fill:none
+    linkStyle 31 stroke:green,stroke-width:2px,fill:none
+    linkStyle 32 stroke:green,stroke-width:2px,fill:none
+    linkStyle 33 stroke:green,stroke-width:2px,fill:none
+    linkStyle 34 stroke:green,stroke-width:2px,fill:none
+    linkStyle 35 stroke:green,stroke-width:2px,fill:none
+
+    %% DOWNSTREAM OF PSUs: enforce +24V=RED and 0V=BLACK (only changing 36+)
+    linkStyle 36 stroke:red,stroke-width:2px,fill:none
+    linkStyle 37 stroke:black,stroke-width:2px,fill:none
+    linkStyle 38 stroke:red,stroke-width:2px,fill:none
+    linkStyle 39 stroke:red,stroke-width:2px,fill:none
+    linkStyle 40 stroke:red,stroke-width:2px,fill:none
+    linkStyle 41 stroke:red,stroke-width:2px,fill:none
+    linkStyle 42 stroke:red,stroke-width:2px,fill:none
+    linkStyle 43 stroke:red,stroke-width:2px,fill:none
+    linkStyle 44 stroke:red,stroke-width:2px,fill:none
+    linkStyle 45 stroke:red,stroke-width:2px,fill:none
+    linkStyle 46 stroke:red,stroke-width:2px,fill:none
+    linkStyle 47 stroke:black,stroke-width:2px,fill:none
+    linkStyle 48 stroke:black,stroke-width:2px,fill:none
+    linkStyle 49 stroke:red,stroke-width:2px,fill:none
+    linkStyle 50 stroke:red,stroke-width:2px,fill:none
+    linkStyle 51 stroke:red,stroke-width:2px,fill:none
+    linkStyle 52 stroke:red,stroke-width:2px,fill:none
+    linkStyle 53 stroke:black,stroke-width:2px,fill:none
+    linkStyle 54 stroke:black,stroke-width:2px,fill:none
+    linkStyle 55 stroke:red,stroke-width:2px,fill:none
+    linkStyle 56 stroke:black,stroke-width:2px,fill:none
+
+    %% leave +5V links as-is
+    linkStyle 57 stroke:red,stroke-width:2px,fill:none
+    linkStyle 58 stroke:red,stroke-width:2px,fill:none
+    linkStyle 59 stroke:red,stroke-width:2px,fill:none
+    linkStyle 60 stroke:red,stroke-width:2px,fill:none
+
+    linkStyle 61 stroke:red,stroke-width:2px,fill:none
+    linkStyle 62 stroke:black,stroke-width:2px,fill:none
+    linkStyle 63 stroke:red,stroke-width:2px,fill:none
+    linkStyle 64 stroke:red,stroke-width:2px,fill:none
+    linkStyle 65 stroke:red,stroke-width:2px,fill:none
+    linkStyle 66 stroke:black,stroke-width:2px,fill:none
+    linkStyle 67 stroke:red,stroke-width:2px,fill:none
+    linkStyle 68 stroke:red,stroke-width:2px,fill:none
+    linkStyle 69 stroke:black,stroke-width:2px,fill:none
+
+    %% leave +12V/+12V_SW links as-is, but enforce their 0V returns as black
+    linkStyle 70 stroke:red,stroke-width:2px,fill:none
+    linkStyle 71 stroke:black,stroke-width:2px,fill:none
+    linkStyle 72 stroke:red,stroke-width:2px,fill:none
+    linkStyle 73 stroke:red,stroke-width:2px,fill:none
+    linkStyle 74 stroke:red,stroke-width:2px,fill:none
+    linkStyle 75 stroke:red,stroke-width:2px,fill:none
+    linkStyle 76 stroke:black,stroke-width:2px,fill:none
+    linkStyle 77 stroke:red,stroke-width:2px,fill:none
+    linkStyle 78 stroke:red,stroke-width:2px,fill:none
+    linkStyle 79 stroke:black,stroke-width:2px,fill:none
