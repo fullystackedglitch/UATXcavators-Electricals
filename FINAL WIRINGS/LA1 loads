@@ -1,0 +1,145 @@
+---
+config:
+  flowchart:
+    nodeSpacing: 20
+    rankSpacing: 20
+  theme: base
+  layout: dagre
+---
+flowchart LR
+ subgraph PSUS["PSUs"]
+    direction TB
+        PSU_LA1["LA #1 PSU (24VDC)"]
+        PSU_LA2["LA #2 PSU (24VDC)"]
+        PSU_PMP["Pumps PSU (12VDC)"]
+        PSU_CTRL["Controls PSU (24VDC)"]
+  end
+
+ subgraph LA1_LOADS["LA #1 PSU (24VDC) → LOADS"]
+    direction LR
+        PD_LA1_POS["+24V power distribution"]
+        PD_LA1_NEG["0V return bus"]
+
+        subgraph BRANCH_FUSES["Branch fuses (+24V)"]
+          direction TB
+            FUSE_FA["3A fuse (Fan Group A)"]
+            FUSE_FB["3A fuse (Fan Group B)"]
+            FUSE_CONV_TBM["3A fuse (Converter TBM input)"]
+            FUSE_CONV_CP["3A fuse (Converter Panel input)"]
+        end
+
+        subgraph STEP_DOWNS["Step downs"]
+          direction TB
+            CONV_TBM["24V → 5V Converter (TBM)"]
+            CONV_CP["24V → 5V Converter (Control Panel)"]
+        end
+
+        subgraph CKT_PROT["Circuit protection"]
+          direction TB
+            BRK_LA1["25A DC breaker"]
+            FUSE_TBM["3A Fuse (TBM Logic)"]
+            FUSE_CP["3A Fuse (Panel Logic)"]
+        end
+
+        subgraph SWITCHES["Switches"]
+          direction TB
+            K_FAN_A["13.5A relay (Fan Group A)"]
+            K_FAN_B["13.5A relay (Fan Group B)"]
+        end
+
+        subgraph BUSES["Buses"]
+          direction TB
+            BUS_A_POS["+24V bus A (Fans 1, 2)"]
+            BUS_B_POS["+24V bus B (Fans 3, 4)"]
+        end
+
+        subgraph LOADS["Loads"]
+          direction TB
+            FAN1["TBM fan 1 (24V, 1A)"]
+            FAN2["TBM fan 2 (24V, 1A)"]
+            FAN3["TBM fan 3 (24V, 1A)"]
+            FAN4["TBM fan 4 (24V, 1A)"]
+            LA1["Linear Actuator #1"]
+            ESP_TBM["TBM ESP32"]
+            ESP_CP["Control Panel ESP32"]
+        end
+  end
+
+%% ===== LINKS (INDEXED 0–30) =====
+
+    PSU_LA1 -- +24V --> PD_LA1_POS        %% 0
+    PD_LA1_NEG -- 0V --> PSU_LA1          %% 1
+
+    PD_LA1_POS -- +24V --> FUSE_FA        %% 2
+    PD_LA1_POS -- +24V --> FUSE_FB        %% 3
+    PD_LA1_POS -- +24V --> FUSE_CONV_TBM  %% 4
+    PD_LA1_POS -- +24V --> FUSE_CONV_CP   %% 5
+    PD_LA1_POS -- +24V --> BRK_LA1        %% 6
+
+    FUSE_FA -- +24V --> K_FAN_A           %% 7
+    K_FAN_A -- +24V --> BUS_A_POS         %% 8
+    BUS_A_POS -- +24V --> FAN1            %% 9
+    BUS_A_POS -- +24V --> FAN2            %% 10
+    FAN1 -- 0V --> PD_LA1_NEG             %% 11
+    FAN2 -- 0V --> PD_LA1_NEG             %% 12
+
+    FUSE_FB -- +24V --> K_FAN_B           %% 13
+    K_FAN_B -- +24V --> BUS_B_POS         %% 14
+    BUS_B_POS -- +24V --> FAN3            %% 15
+    BUS_B_POS -- +24V --> FAN4            %% 16
+    FAN3 -- 0V --> PD_LA1_NEG             %% 17
+    FAN4 -- 0V --> PD_LA1_NEG             %% 18
+
+    BRK_LA1 -- +24V --> LA1               %% 19
+    LA1 -- 0V --> PD_LA1_NEG              %% 20
+
+    FUSE_CONV_TBM -- +24V --> CONV_TBM    %% 21
+    CONV_TBM -- 0V --> PD_LA1_NEG         %% 22
+
+    FUSE_CONV_CP -- +24V --> CONV_CP      %% 23
+    CONV_CP -- 0V --> PD_LA1_NEG          %% 24
+
+    CONV_TBM -- +5V --> FUSE_TBM          %% 25
+    FUSE_TBM -- +5V --> ESP_TBM           %% 26
+    ESP_TBM -- 0V --> CONV_TBM            %% 27
+
+    CONV_CP -- +5V --> FUSE_CP            %% 28
+    FUSE_CP -- +5V --> ESP_CP             %% 29
+    ESP_CP -- 0V --> CONV_CP              %% 30
+
+
+%% ===== COLORING =====
+%% RED (positive rails)
+    linkStyle 0 stroke:#D50000,stroke-width:2px
+    linkStyle 2 stroke:#D50000,stroke-width:2px
+    linkStyle 3 stroke:#D50000,stroke-width:2px
+    linkStyle 4 stroke:#D50000,stroke-width:2px
+    linkStyle 5 stroke:#D50000,stroke-width:2px
+    linkStyle 6 stroke:#D50000,stroke-width:2px
+    linkStyle 7 stroke:#D50000,stroke-width:2px
+    linkStyle 8 stroke:#D50000,stroke-width:2px
+    linkStyle 9 stroke:#D50000,stroke-width:2px
+    linkStyle 10 stroke:#D50000,stroke-width:2px
+    linkStyle 13 stroke:#D50000,stroke-width:2px
+    linkStyle 14 stroke:#D50000,stroke-width:2px
+    linkStyle 15 stroke:#D50000,stroke-width:2px
+    linkStyle 16 stroke:#D50000,stroke-width:2px
+    linkStyle 19 stroke:#D50000,stroke-width:2px
+    linkStyle 21 stroke:#D50000,stroke-width:2px
+    linkStyle 23 stroke:#D50000,stroke-width:2px
+    linkStyle 25 stroke:#D50000,stroke-width:2px
+    linkStyle 26 stroke:#D50000,stroke-width:2px
+    linkStyle 28 stroke:#D50000,stroke-width:2px
+    linkStyle 29 stroke:#D50000,stroke-width:2px
+
+%% BLACK (returns)
+    linkStyle 1 stroke:#000000,stroke-width:2px
+    linkStyle 11 stroke:#000000,stroke-width:2px
+    linkStyle 12 stroke:#000000,stroke-width:2px
+    linkStyle 17 stroke:#000000,stroke-width:2px
+    linkStyle 18 stroke:#000000,stroke-width:2px
+    linkStyle 20 stroke:#000000,stroke-width:2px
+    linkStyle 22 stroke:#000000,stroke-width:2px
+    linkStyle 24 stroke:#000000,stroke-width:2px
+    linkStyle 27 stroke:#000000,stroke-width:2px
+    linkStyle 30 stroke:#000000,stroke-width:2px
