@@ -1,0 +1,103 @@
+---
+config:
+  flowchart:
+    nodeSpacing: 20
+    rankSpacing: 20
+  theme: redux
+  layout: dagre
+---
+flowchart LR
+ subgraph DUP1["Duplex 1 (Circuit 1)"]
+    direction TB
+        O1B["Outlet 1B<br>H N PE"]
+        O1A["Outlet 1A<br>H N PE"]
+  end
+ subgraph DUP2["Duplex 2 (Circuit 2)"]
+    direction TB
+        O2B["Outlet 2B<br>H N PE"]
+        O2A["Outlet 2A<br>H N PE"]
+  end
+ subgraph PWR_SRC["POWER SOURCE"]
+    direction TB
+        DUP1
+        DUP2
+  end
+ subgraph CKT_PROT["CIRCUIT PROTECTION"]
+    direction TB
+        FUSE_2B["10A fuse (2B)"]
+        BRK_2A["15A breaker (2A)"]
+        FUSE_1B["10A fuse (1B)"]
+        BRK_1A["15A breaker (1A)"]
+  end
+ subgraph SWITCHES["E-stopable contacts"]
+    direction TB
+        K_PMP_AC["13.5A relay (Pumps hot)"]
+        K3P["3-pole contactor (K3P)"]
+  end
+ subgraph PSUS["PSUs"]
+    direction TB
+        PSU_CTRL["Controls PSU<br>AC: H N PE"]
+        PSU_PMP["Pumps PSU (12VDC)<br>AC: H N PE"]
+        PSU_LA2["LA #2 PSU (24VDC)<br>AC: H N PE"]
+        PSU_LA1["LA #1 PSU (24VDC)<br>AC: H N PE"]
+  end
+ subgraph SYS["Power Source → PSUs"]
+    direction LR
+        PWR_SRC
+        CKT_PROT
+        SWITCHES
+        PSUS
+  end
+ subgraph PE_SYS["PE"]
+    direction TB
+        PE_BAR["PE bar"]
+  end
+    O1A -- 1A PE --> PE_BAR
+    O1B -- 1B PE --> PE_BAR
+    O2A -- 2A PE --> PE_BAR
+    O2B -- 2B PE --> PE_BAR
+    PE_BAR -- LA1 PE --> PSU_LA1
+    PE_BAR -- LA2 PE --> PSU_LA2
+    PE_BAR -- Pumps PE --> PSU_PMP
+    PE_BAR -- Controls PE --> PSU_CTRL
+    O1A -- 1A hot --> BRK_1A
+    BRK_1A -- 1A hot --> K3P
+    K3P -- 1A hot --> PSU_LA1
+    O1B -- 1B hot --> FUSE_1B
+    FUSE_1B -- 1B hot --> K3P
+    K3P -- 1B hot --> K_PMP_AC
+    K_PMP_AC -- 1B hot --> PSU_PMP
+    O2A -- 2A hot --> BRK_2A
+    BRK_2A -- 2A hot --> K3P
+    K3P -- 2A hot --> PSU_LA2
+    O2B -- 2B hot --> FUSE_2B
+    FUSE_2B -- 2B hot --> PSU_CTRL
+    O1A -- 1A neutral --> PSU_LA1
+    O1B -- 1B neutral --> PSU_PMP
+    O2A -- 2A neutral --> PSU_LA2
+    O2B -- 2B neutral --> PSU_CTRL
+
+    linkStyle 0 stroke:#00C853,fill:none
+    linkStyle 1 stroke:#00C853,fill:none
+    linkStyle 2 stroke:#00C853,fill:none
+    linkStyle 3 stroke:#00C853,fill:none
+    linkStyle 4 stroke:#00C853,fill:none
+    linkStyle 5 stroke:#00C853,fill:none
+    linkStyle 6 stroke:#00C853,fill:none
+    linkStyle 7 stroke:#00C853,fill:none
+    linkStyle 8 stroke:#D50000,fill:none
+    linkStyle 9 stroke:#D50000,fill:none
+    linkStyle 10 stroke:#D50000,fill:none
+    linkStyle 11 stroke:#D50000,fill:none
+    linkStyle 12 stroke:#D50000,fill:none
+    linkStyle 13 stroke:#D50000,fill:none
+    linkStyle 14 stroke:#D50000,fill:none
+    linkStyle 15 stroke:#D50000,fill:none
+    linkStyle 16 stroke:#D50000,fill:none
+    linkStyle 17 stroke:#D50000,fill:none
+    linkStyle 18 stroke:#D50000,fill:none
+    linkStyle 19 stroke:#D50000,fill:none
+    linkStyle 20 stroke:#757575,fill:none
+    linkStyle 21 stroke:#757575,fill:none
+    linkStyle 22 stroke:#757575,fill:none
+    linkStyle 23 stroke:#757575,fill:noneswitched)|
