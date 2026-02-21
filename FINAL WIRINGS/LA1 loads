@@ -26,6 +26,7 @@ flowchart LR
             FUSE_FB["3A fuse (Fan Group B)"]
             FUSE_CONV_TBM["3A fuse (Converter TBM input)"]
             FUSE_CONV_CP["3A fuse (Converter Panel input)"]
+            BRK_LA1["25A DC breaker"]
         end
 
         subgraph STEP_DOWNS["Step downs"]
@@ -36,7 +37,6 @@ flowchart LR
 
         subgraph CKT_PROT["Circuit protection"]
           direction TB
-            BRK_LA1["25A DC breaker"]
             FUSE_TBM["3A Fuse (TBM Logic)"]
             FUSE_CP["3A Fuse (Panel Logic)"]
         end
