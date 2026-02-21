@@ -1,0 +1,139 @@
+---
+config:
+  flowchart:
+    nodeSpacing: 20
+    rankSpacing: 20
+  theme: base
+  layout: dagre
+  look: neo
+---
+flowchart LR
+ subgraph DUP1["Duplex A (20A)"]
+    direction TB
+        OA1["Outlet A1<br>120V AC"]
+        OA2["Outlet A2<br>120V AC"]
+  end
+ subgraph DUP2["Duplex B (20A)"]
+    direction TB
+        OB1["Outlet B1<br>120V AC"]
+        OB2["Outlet B2<br>120V AC"]
+  end
+ subgraph PWR_SRC["POWER SOURCE"]
+    direction TB
+        DUP2
+        DUP1
+  end
+ subgraph LOTO["LOTO DISCONNECT"]
+    direction TB
+        DISCO3P["3-pole rotary disconnect<br>(non-control loads)"]
+  end
+ subgraph GFM_BOX["GROUND FAULT MONITORING"]
+    direction TB
+        CT["Zero-sequence CT<br>(all hots, neutrals pass)"]
+  end
+ subgraph CKT_PROT["CIRCUIT PROTECTION"]
+    direction TB
+        BRK_A1["15A breaker (A1)"]
+        FUSE_A2["10A fuse (A2)"]
+        BRK_B1["15A breaker (B1)"]
+        FUSE_B2["10A fuse (B2)"]
+  end
+ subgraph SWITCHES["SWITCHES"]
+    direction TB
+        K3P["3-pole contactor (K3P)"]
+        K_PMP_AC["13.5A relay (Pumps hot)"]
+        TB_B2["B2 pass-through trmnl blk"]
+  end
+ subgraph PSUS["PSUs"]
+    direction TB
+        PSU_LA1["LA #1 PSU (24VDC)<br>"]
+        PSU_LA2["LA #2 PSU (24VDC)<br>"]
+        PSU_PMP["Pumps PSU (12VDC)<br>"]
+        PSU_CTRL["Controls PSU (24VDC)<br>"]
+  end
+ subgraph SYS["Power Source → PSUs"]
+    direction LR
+        PSUS
+        SWITCHES
+        CKT_PROT
+        GFM_BOX
+        LOTO
+        PWR_SRC
+  end
+ subgraph PE_SYS["PE"]
+    direction TB
+        PE_BAR["PE bar"]
+  end
+    OA1 -- A1 PE --> PE_BAR
+    OA2 -- A2 PE --> PE_BAR
+    OB1 -- B1 PE --> PE_BAR
+    OB2 -- B2 PE --> PE_BAR
+    PE_BAR -- LA1 PE --> PSU_LA1
+    PE_BAR -- LA2 PE --> PSU_LA2
+    PE_BAR -- Pumps PE --> PSU_PMP
+    PE_BAR -- Controls PE --> PSU_CTRL
+    OA1 -- A1 hot --> DISCO3P
+    DISCO3P -- A1 hot --> CT
+    CT -- A1 hot --> BRK_A1
+    BRK_A1 -- A1 hot --> K3P
+    K3P -- A1 hot --> PSU_LA1
+    OA2 -- A2 hot --> DISCO3P
+    DISCO3P -- A2 hot --> CT
+    CT -- A2 hot --> FUSE_A2
+    FUSE_A2 -- A2 hot --> K3P
+    K3P -- A2 hot --> K_PMP_AC
+    K_PMP_AC -- A2 hot --> PSU_PMP
+    OB1 -- B1 hot --> DISCO3P
+    DISCO3P -- B1 hot --> CT
+    CT -- B1 hot --> BRK_B1
+    BRK_B1 -- B1 hot --> K3P
+    K3P -- B1 hot --> PSU_LA2
+    OB2 -- B2 hot --> CT
+    CT -- B2 hot --> FUSE_B2
+    FUSE_B2 -- B2 hot --> TB_B2
+    TB_B2 -- B2 hot --> PSU_CTRL
+    OA1 -- A1 neutral --> CT
+    CT -- A1 neutral --> PSU_LA1
+    OA2 -- A2 neutral --> CT
+    CT -- A2 neutral --> PSU_PMP
+    OB1 -- B1 neutral --> CT
+    CT -- B1 neutral --> PSU_LA2
+    OB2 -- B2 neutral --> CT
+    CT -- B2 neutral --> PSU_CTRL
+
+    linkStyle 0 stroke:#00C853,fill:none
+    linkStyle 1 stroke:#00C853,fill:none
+    linkStyle 2 stroke:#00C853,fill:none
+    linkStyle 3 stroke:#00C853,fill:none
+    linkStyle 4 stroke:#00C853,fill:none
+    linkStyle 5 stroke:#00C853,fill:none
+    linkStyle 6 stroke:#00C853,fill:none
+    linkStyle 7 stroke:#00C853,fill:none
+    linkStyle 8 stroke:#D50000,fill:none
+    linkStyle 9 stroke:#D50000,fill:none
+    linkStyle 10 stroke:#D50000,fill:none
+    linkStyle 11 stroke:#D50000,fill:none
+    linkStyle 12 stroke:#D50000,fill:none
+    linkStyle 13 stroke:#D50000,fill:none
+    linkStyle 14 stroke:#D50000,fill:none
+    linkStyle 15 stroke:#D50000,fill:none
+    linkStyle 16 stroke:#D50000,fill:none
+    linkStyle 17 stroke:#D50000,fill:none
+    linkStyle 18 stroke:#D50000,fill:none
+    linkStyle 19 stroke:#D50000,fill:none
+    linkStyle 20 stroke:#D50000,fill:none
+    linkStyle 21 stroke:#D50000,fill:none
+    linkStyle 22 stroke:#D50000,fill:none
+    linkStyle 23 stroke:#D50000,fill:none
+    linkStyle 24 stroke:#D50000,fill:none
+    linkStyle 25 stroke:#D50000,fill:none
+    linkStyle 26 stroke:#D50000,fill:none
+    linkStyle 27 stroke:#D50000,fill:none
+    linkStyle 28 stroke:#616161,fill:none
+    linkStyle 29 stroke:#616161,fill:none
+    linkStyle 30 stroke:#616161,fill:none
+    linkStyle 31 stroke:#616161,fill:none
+    linkStyle 32 stroke:#616161,fill:none
+    linkStyle 33 stroke:#616161,fill:none
+    linkStyle 34 stroke:#616161,fill:none
+    linkStyle 35 stroke:#616161,fill:none
