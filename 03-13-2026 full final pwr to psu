@@ -1,0 +1,190 @@
+---
+config:
+  flowchart:
+    nodeSpacing: 20
+    rankSpacing: 20
+  theme: base
+  layout: dagre
+  look: neo
+---
+flowchart LR
+
+ subgraph DUP1["Duplex A (20A)"]
+    direction TB
+        OA1["Outlet A1<br>120V AC"]
+        OA2["Outlet A2<br>120V AC"]
+ end
+
+ subgraph DUP2["Duplex B (20A)"]
+    direction TB
+        OB1["Outlet B1<br>120V AC"]
+        OB2["Outlet B2<br>120V AC"]
+ end
+
+ subgraph PWR_SRC["POWER SOURCE"]
+    direction TB
+        DUP2
+        DUP1
+ end
+
+ subgraph TB_PRE["TERMINAL BLOCKS (PRE-LOTO)"]
+    direction TB
+
+    subgraph TB_PE["PE TB ROW (green)"]
+        direction LR
+        TB_A1_PE["A1 PE TB"]
+        TB_A2_PE["A2 PE TB"]
+        TB_B1_PE["B1 PE TB"]
+        TB_B2_PE["B2 PE TB"]
+    end
+
+    subgraph TB_N["NEUTRAL TB ROW (gray)"]
+        direction LR
+        TB_A1_N["A1 N TB"]
+        TB_A2_N["A2 N TB"]
+        TB_B1_N["B1 N TB"]
+        TB_B2_N["B2 N TB"]
+    end
+
+    subgraph TB_H["HOT TB ROW (red)"]
+        direction LR
+        TB_A1_H["A1 HOT TB"]
+        TB_A2_H["A2 HOT TB"]
+        TB_B1_H["B1 HOT TB"]
+        TB_B2_H["B2 HOT TB"]
+    end
+
+ end
+
+ subgraph LOTO["LOTO DISCONNECT"]
+    direction TB
+        DISCO3P["3-pole rotary disconnect<br>(non-control loads)"]
+ end
+
+ subgraph CKT_PROT["CIRCUIT PROTECTION"]
+    direction TB
+        BRK_A1["15A breaker (A1)"]
+        FUSE_A2["10A fuse (A2)"]
+        BRK_B1["15A breaker (B1)"]
+        FUSE_B2["10A fuse (B2 controls)"]
+        FUSE_FAN1["1A fuse (Fan Pair 1)"]
+        FUSE_FAN2["1A fuse (Fan Pair 2)"]
+ end
+
+ subgraph SWITCHES["SWITCHES"]
+    direction TB
+        K3P["3-pole contactor (K3P)"]
+        K_PMP_AC["13.5A relay (Pumps hot)"]
+        K_FAN1["Relay (Fan Pair 1 hot)"]
+        K_FAN2["Relay (Fan Pair 2 hot)"]
+ end
+
+ subgraph FAN_DIST["FAN TERMINAL BLOCKS"]
+    direction TB
+        FAN1_H_TB["Fan Pair 1 HOT TBs<br>(jumped)"]
+        FAN2_H_TB["Fan Pair 2 HOT TBs<br>(jumped)"]
+        FAN_N_TB["Fan NEUTRAL TBs<br>(jumped)"]
+ end
+
+ subgraph FANS["120V FANS"]
+    direction TB
+        FAN1["Fan 1<br>115V, 20W"]
+        FAN2["Fan 2<br>115V, 20W"]
+        FAN3["Fan 3<br>115V, 20W"]
+        FAN4["Fan 4<br>115V, 20W"]
+ end
+
+ subgraph PSUS["PSUs"]
+    direction TB
+        PSU_LA1["LA #1 PSU (24VDC)<br>"]
+        PSU_LA2["LA #2 PSU (24VDC)<br>"]
+        PSU_PMP["Pumps PSU (12VDC)<br>"]
+        PSU_CTRL["Controls PSU (24VDC)<br>"]
+ end
+
+ subgraph SYS["Power Source → PSUs"]
+    direction LR
+        PSUS
+        FANS
+        FAN_DIST
+        SWITCHES
+        CKT_PROT
+        LOTO
+        TB_PRE
+        PWR_SRC
+ end
+
+ subgraph PE_SYS["PE"]
+    direction TB
+        PE_BAR["PE bar"]
+ end
+
+    OA1 -- A1 PE --> TB_A1_PE
+    OA2 -- A2 PE --> TB_A2_PE
+    OB1 -- B1 PE --> TB_B1_PE
+    OB2 -- B2 PE --> TB_B2_PE
+
+    TB_A1_PE -- A1 PE --> PE_BAR
+    TB_A2_PE -- A2 PE --> PE_BAR
+    TB_B1_PE -- B1 PE --> PE_BAR
+    TB_B2_PE -- B2 PE --> PE_BAR
+
+    PE_BAR -- LA1 PE --> PSU_LA1
+    PE_BAR -- LA2 PE --> PSU_LA2
+    PE_BAR -- Pumps PE --> PSU_PMP
+    PE_BAR -- Controls PE --> PSU_CTRL
+    PE_BAR -- Fan 1 PE --> FAN1
+    PE_BAR -- Fan 2 PE --> FAN2
+    PE_BAR -- Fan 3 PE --> FAN3
+    PE_BAR -- Fan 4 PE --> FAN4
+
+    OA1 -- A1 neutral --> TB_A1_N
+    OA2 -- A2 neutral --> TB_A2_N
+    OB1 -- B1 neutral --> TB_B1_N
+    OB2 -- B2 neutral --> TB_B2_N
+
+    TB_A1_N -- A1 neutral --> PSU_LA1
+    TB_A2_N -- A2 neutral --> PSU_PMP
+    TB_B1_N -- B1 neutral --> PSU_LA2
+    TB_B2_N -- B2 neutral --> PSU_CTRL
+    TB_B2_N -- B2 neutral --> FAN_N_TB
+    FAN_N_TB -- Fan 1 neutral --> FAN1
+    FAN_N_TB -- Fan 2 neutral --> FAN2
+    FAN_N_TB -- Fan 3 neutral --> FAN3
+    FAN_N_TB -- Fan 4 neutral --> FAN4
+
+    OA1 -- A1 hot --> TB_A1_H
+    OA2 -- A2 hot --> TB_A2_H
+    OB1 -- B1 hot --> TB_B1_H
+    OB2 -- B2 hot --> TB_B2_H
+
+    TB_A1_H -- A1 hot --> DISCO3P
+    DISCO3P -- A1 hot --> BRK_A1
+    BRK_A1 -- A1 hot --> K3P
+    K3P -- A1 hot --> PSU_LA1
+
+    TB_A2_H -- A2 hot --> DISCO3P
+    DISCO3P -- A2 hot --> FUSE_A2
+    FUSE_A2 -- A2 hot --> K3P
+    K3P -- A2 hot --> K_PMP_AC
+    K_PMP_AC -- A2 hot --> PSU_PMP
+
+    TB_B1_H -- B1 hot --> DISCO3P
+    DISCO3P -- B1 hot --> BRK_B1
+    BRK_B1 -- B1 hot --> K3P
+    K3P -- B1 hot --> PSU_LA2
+
+    TB_B2_H -- B2 hot --> FUSE_B2
+    FUSE_B2 -- B2 hot --> PSU_CTRL
+
+    TB_B2_H -- B2 hot --> FUSE_FAN1
+    FUSE_FAN1 -- Fan Pair 1 hot --> K_FAN1
+    K_FAN1 -- Fan Pair 1 hot --> FAN1_H_TB
+    FAN1_H_TB -- Fan 1 hot --> FAN1
+    FAN1_H_TB -- Fan 2 hot --> FAN2
+
+    TB_B2_H -- B2 hot --> FUSE_FAN2
+    FUSE_FAN2 -- Fan Pair 2 hot --> K_FAN2
+    K_FAN2 -- Fan Pair 2 hot --> FAN2_H_TB
+    FAN2_H_TB -- Fan 3 hot --> FAN3
+    FAN2_H_TB -- Fan 4 hot --> FAN4
